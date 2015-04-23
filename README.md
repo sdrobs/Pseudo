@@ -2,7 +2,7 @@ Anonymized Email Relay
 ===
 
 #### Why?
-PGP encryption can help mitigate the risk of a standard man-in-the-middle attack when sending emails- However, once your messages are decrypted on the recipient's machine, there is little protecting your identity should they be compromised.
+PGP encryption helps mitigate the risk of a standard man-in-the-middle attack when sending emails- However, once your messages are decrypted on the recipient's machine, there is little protecting your identity should they be compromised.
 
 This system ensures end-to-end confidentiality by acting as a relay for all email communication between two parties, stripping all identifying information and replacing it with a consistent pseudonym.
 
