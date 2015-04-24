@@ -137,7 +137,7 @@ function mapAES(mail_object){
             var mapCipher = pseudohash.map_cipher
             var key = p
 
-            if(hash == pseudohash.hash){
+            if(hash == pseudohash.hash)
                 mapCipher = pseudohash.map_cipher2
 
             var map = JSON.parse(AESDecrypt(mapCipher,key))
