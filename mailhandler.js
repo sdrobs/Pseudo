@@ -289,9 +289,9 @@ function AESDecrypt(cipher,key){
 }
 
 function genPseudo(){
-    var animal = animal.getId()
-    animal = animal + uuidGen()
-    return animal
+    var animalName = animal.getId()
+    animalName = animalName + uuidGen()
+    return animalName
 }
 
 //destroy pseudnym lookup
