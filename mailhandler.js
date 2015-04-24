@@ -13,7 +13,7 @@ var nodemailer = require('nodemailer'),
 animal.useSeparator('_');
 
 var Pseudonym = require('./models/pseudonym').Pseudonym,
-    Pseudohash = require('./models/pseudohash')
+    Pseudohash = require('./models/pseudohash').Pseudohash
     
 
 mongoose.connect('mongodb://localhost/6857', function(err) {
@@ -91,7 +91,7 @@ function mapAES(mail_object){
 
         var recipient = mail_object.to[0].address
 
-        var pseudohash = new Pseudohash();
+        var pseudohash = new Pseudohash({});
 
         var pseudo1 = genPseudo(); //initiator
         var pseudo2 = genPseudo(); //receiver
