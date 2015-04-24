@@ -144,7 +144,7 @@ function mapAES(mail_object){
             }
 
             if(qs.destroy == 'true')
-                destroy(pseudohash,sender,map.email,p,map.pseudonym)
+                return destroy(pseudohash,sender,map.email,p,map.pseudonym)
 
             message.to.push(map.email)
             message.from = map.pseudonym
@@ -246,7 +246,7 @@ function mapPlainText(){
 
                     message.from = pseudonym.receiver_pseudonym
                     message.to.push(pseudonym.initiator)
-                    
+
                     return send(message)
                 })
             }
