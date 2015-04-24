@@ -89,35 +89,35 @@ function mapAES(mail_object){
         if(!qs.to || qs.to == "")
             return //should we notify sender that their mail didn't go through?
 
-        var recipient = mail_object.to[0].address
+        var recipient = qs.to
 
         var pseudohash = new Pseudohash({});
 
         var pseudo1 = genPseudo(); //initiator
         var pseudo2 = genPseudo(); //receiver
 
-        //encrypted with pseudo2
+        //encrypted with pseudo1
         var map1 = {
             email:sender, //initiator
             pseudonym: pseudo2 //receiver
         }
 
-        //encrypted with pseudo1
+        //encrypted with pseudo2
         var map2 = {
             email:recipient, //receiver
             pseudonym: pseudo1 //initiator
         }
 
-        pseudohash.hash = pseudo1
-        pseudohash.hash2 = pseudo2
-        pseudohash.map_cipher = AESEncrypt(map1,pseudo2)
-        pseudohash.map_cipher2 = AESEncrypt(map2,pseudo1)
+        pseudohash.hash = SHA256(pseudo1)
+        pseudohash.hash2 = SHA256(pseudo2)
+        pseudohash.map_cipher = AESEncrypt(JSON.stringify(map1),pseudo1)
+        pseudohash.map_cipher2 = AESEncrypt(JSON.stringify(map2),pseudo2)
 
         pseudohash.save(function(err,savedP){
             if(err)
                 throw err
 
-            message.to.append(recipient)
+            message.to.push(recipient)
             message.from = pseudo1
 
             send(message)
@@ -126,23 +126,29 @@ function mapAES(mail_object){
     else{
         var hash = SHA256(p)
 
-
-        pseudohash.findOne({$or: [{hash1:hash},{hash2:hash}]}).exec(function(err,pseudohash){
+	console.log(p)
+        Pseudohash.findOne({$or: [{hash:hash},{hash2:hash}]}).exec(function(err,pseudohash){
             if(err)
                 throw err
-
+	    console.log(pseudohash)
             if(!pseudohash)
                 return //should we notify sender their email didn't go through?
 
-            var mapCipher = pseudohash.map_cipher
+            var mapCipher = pseudohash.map_cipher2
             var key = p
 
             if(hash == pseudohash.hash)
-                mapCipher = pseudohash.map_cipher2
+                mapCipher = pseudohash.map_cipher
+            
+	    var map
+	    try{
+		map = JSON.parse(AESDecrypt(mapCipher,key))
+	    }
+	    catch(err){
+		return //invalid key
+	    }
 
-            var map = JSON.parse(AESDecrypt(mapCipher,key))
-
-            message.to.append(map.email)
+            message.to.push(map.email)
             message.from = map.pseudonym
 
             send(message)
