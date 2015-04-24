@@ -2,7 +2,6 @@ var nodemailer = require('nodemailer'),
     fs = require('fs'),
     //var body = fs.readFileSync("body.html", "utf8");
     path = require('path'),
-    session = require('express-session'),
     fs = require('fs'),
     MailParser = require("mailparser").MailParser,
     Mbox = require('node-mbox'),
@@ -11,7 +10,7 @@ var nodemailer = require('nodemailer'),
     crypto = require('crypto'),
     animal = require('animal-id');
 
-animal.useSeparator(' ');
+animal.useSeparator('_');
 
 var Pseudonym = require('./models/pseudonym').Pseudonym,
     Pseudohash = require('./models/pseudohash')
@@ -49,7 +48,8 @@ function watch(){
             var mailparser = new MailParser();
                 
             mailparser.on("end", function(mail_object){
-                mapPlainText(mail_object)
+                mapAES(mail_object)
+                //mapPlainText(mail_object)
             });
 
 
@@ -58,6 +58,96 @@ function watch(){
             mbox = {}
         });
     })
+}
+
+//currently only supports 1 recipient, although more is totally possible to implement
+function mapAES(mail_object){
+    var sender = mail_object.from[0].address
+    var subject = mail_object.subject
+    var query_string = subject.split("||")[subject.split("||").length-1]
+    var qs = parseQS(query_string)
+
+    if(subject.indexOf("||") != -1)
+        subject = subject.substring(0,subject.lastIndexOf("||"))
+
+    var p = mail_object.to[0].name //pseudonym they are sending to (if none, new message)
+
+    console.log("---")
+    console.log(sender)
+    console.log(subject)
+    console.log(mail_object.to)
+    console.log("---")
+
+    var message = {}
+    message.to = []
+    message.subject = subject
+    message.body = mail_object.text
+
+    if(!p || p == ""){
+        //new conversation (not replying)
+
+        if(!qs.to || qs.to == "")
+            return //should we notify sender that their mail didn't go through?
+
+        var recipient = mail_object.to[0].address
+
+        var pseudohash = new Pseudohash();
+
+        var pseudo1 = genPseudo(); //initiator
+        var pseudo2 = genPseudo(); //receiver
+
+        //encrypted with pseudo2
+        var map1 = {
+            email:sender, //initiator
+            pseudonym: pseudo2 //receiver
+        }
+
+        //encrypted with pseudo1
+        var map2 = {
+            email:recipient, //receiver
+            pseudonym: pseudo1 //initiator
+        }
+
+        pseudohash.hash = pseudo1
+        pseudohash.hash2 = pseudo2
+        pseudohash.map_cipher = AESEncrypt(map1,pseudo2)
+        pseudohash.map_cipher2 = AESEncrypt(map2,pseudo1)
+
+        pseudohash.save(function(err,savedP){
+            if(err)
+                throw err
+
+            message.to.append(recipient)
+            message.from = pseudo1
+
+            send(message)
+        })
+    }
+    else{
+        var hash = SHA256(p)
+
+
+        pseudohash.findOne({$or: [{hash1:hash},{hash2:hash}]}).exec(function(err,pseudohash){
+            if(err)
+                throw err
+
+            if(!pseudohash)
+                return //should we notify sender their email didn't go through?
+
+            var mapCipher = pseudohash.map_cipher
+            var key = p
+
+            if(hash == pseudohash.hash){
+                mapCipher = pseudohash.map_cipher2
+
+            var map = JSON.parse(AESDecrypt(mapCipher,key))
+
+            message.to.append(map.email)
+            message.from = map.pseudonym
+
+            send(message)
+        })
+    }
 }
 
 function mapPlainText(){
@@ -107,8 +197,8 @@ function mapPlainText(){
                         return send(message)
                     }
                     else{
-                        var i_pseudo = animal.getId();
-                        var r_pseudo = animal.getId();
+                        var i_pseudo = genPseudo();
+                        var r_pseudo = genPseudo();
 
                         var newPseudo = new Pseudonym({})
                         newPseudo.initiator = sender
@@ -162,6 +252,7 @@ function mapPlainText(){
     }
 }
 
+//this parser is horrible right now. I guess I should fix that later?
 function parseQS(query_string){
     var qs = {}
     var parts = query_string.split(";")
@@ -177,6 +268,30 @@ function parseQS(query_string){
     })
 
     return qs
+}
+
+function SHA256(message){
+    return crypto.createHash('sha256').update(message).digest('base64');
+}
+
+function AESEncrypt(message,key){
+    var cipher = crypto.createCipher("aes-256-ctr",key)
+    var crypted = cipher.update(message,'utf8','hex')
+    crypted += cipher.final('hex')
+    return crypted;
+}
+
+function AESDecrypt(cipher,key){
+    var decipher = crypto.createDecipher("aes-256-ctr",key)
+    var dec = decipher.update(cipher,'hex','utf8')
+    dec += decipher.final('utf8');
+    return dec;
+}
+
+function genPseudo(){
+    var animal = animal.getId()
+    animal = animal + uuidGen()
+    return animal
 }
 
 //destroy pseudnym lookup
@@ -218,7 +333,7 @@ function send(message){
 }
 
 function uuidGen(){ //uuid logic based off of http://stackoverflow.com/a/2117523/1459449
-    var uuid = 'xxxxxxxxxxxyxxxxxxxx'.replace(
+    var uuid = 'xxxxyxxxyxxx'.replace(
         /[xy]/g,
         function (c) {
             var r = Math.random() * 16 | 0, //(0 to 15)
