@@ -72,11 +72,7 @@ function mapAES(mail_object){
 
     var p = mail_object.to[0].name //pseudonym they are sending to (if none, new message)
 
-    console.log("---")
-    console.log(sender)
-    console.log(subject)
-    console.log(mail_object.to)
-    console.log("---")
+    console.log("mail received")
 
     var message = {}
     message.to = []
@@ -126,11 +122,10 @@ function mapAES(mail_object){
     else{
         var hash = SHA256(p)
 
-	console.log(p)
         Pseudohash.findOne({$or: [{hash:hash},{hash2:hash}]}).exec(function(err,pseudohash){
             if(err)
                 throw err
-	    console.log(pseudohash)
+
             if(!pseudohash)
                 return //should we notify sender their email didn't go through?
 
@@ -140,13 +135,16 @@ function mapAES(mail_object){
             if(hash == pseudohash.hash)
                 mapCipher = pseudohash.map_cipher
             
-	    var map
-	    try{
-		map = JSON.parse(AESDecrypt(mapCipher,key))
-	    }
-	    catch(err){
-		return //invalid key
-	    }
+            var map
+            try{
+                map = JSON.parse(AESDecrypt(mapCipher,key))
+            }
+            catch(err){
+                return //invalid key
+            }
+
+            if(qs.destroy == 'true')
+                destroy(pseudohash,sender,map.email,p,map.pseudonym)
 
             message.to.push(map.email)
             message.from = map.pseudonym
@@ -165,11 +163,7 @@ function mapPlainText(){
     if(subject.indexOf("||") != -1)
         subject = subject.substring(0,subject.lastIndexOf("||"))
 
-    console.log("---")
-    console.log(sender)
-    console.log(subject)
-    console.log(mail_object.to)
-    console.log("---")
+    console.log("mail received")
 
     var p = mail_object.to[0].name
     
@@ -233,7 +227,8 @@ function mapPlainText(){
                 throw err
             if(pseudonym){
                 if(qs.destroy == 'true')
-                    return destroy(pseudonym)
+                    return destroy(pseudonym,pseudonym.receiver,pseudonym.initiator,pseudonym.initiator_pseudonym,pseudonym.receiver_pseudonym)
+
                 message.from = pseudonym.initiator_pseudonym
                 message.to.push(pseudonym.receiver)
                 return send(message)
@@ -242,16 +237,17 @@ function mapPlainText(){
                 Pseudonym.findOne({receiver:sender,initiator_pseudonym:p}).exec(function(err,pseudonym){
                     if(err)
                         throw err
-                    if(pseudonym){
-                        if(qs.destroy == 'true')
-                            return destroy(pseudonym)
-                                        message.from = pseudonym.receiver_pseudonym
-                                                message.to.push(pseudonym.initiator)
-                        return send(message)
-                    }
-                    else{
-                        return //they borked the pseudonym
-                    }
+
+                    if(!pseudonym)
+                        return //They borked the pseudonym. notify?
+
+                    if(qs.destroy == 'true')
+                        return destroy(pseudonym,pseudonym.receiver,pseudonym.initiator,pseudonym.initiator_pseudonym,pseudonym.receiver_pseudonym)
+
+                    message.from = pseudonym.receiver_pseudonym
+                    message.to.push(pseudonym.initiator)
+                    
+                    return send(message)
                 })
             }
         })
@@ -301,12 +297,9 @@ function genPseudo(){
 }
 
 //destroy pseudnym lookup
-function destroy(pseudonym){
-    console.log("hello?")
-    var email1 = pseudonym.receiver
-    var email2 = pseudonym.initiator
-    pseudonym.remove(function(err){
-        send({from:"Ronald Rivest",to:[email1,email2],subject:"Link between " + pseudonym.receiver_pseudonym + " and " + pseudonym.initiator_pseudonym + " destroyed." })
+function destroy(mapping,email1,email2,pseudonym1,pseudonym2){
+    mapping.remove(function(err){
+        send({from:"Ronald Rivest",to:[email1,email2],subject:"Link between " + pseudonym1 + " and " + pseudonym2 + " destroyed." })
     })
 }
 
@@ -332,7 +325,7 @@ function send(message){
                         }else{
                                 //console.log('Message sent to ' + member.email + ': ' + info.response);
                             //fs.truncate('/var/mail/bob', 0, function(){console.log('done')})
-                console.log("sent") 
+                console.log("Mail Sent") 
             }
                 });
         })
