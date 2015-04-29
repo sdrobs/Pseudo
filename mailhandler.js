@@ -265,7 +265,10 @@ function shred(){
             exec("echo 'shred -zn 3 /var/spool/mail/bob -f && cp /dev/null /var/spool/mail/bob' | sudo sh", function(err, stdout, stderr){
                 if(err)
                     return callback(err)
+                if(stderr)
+                    return callback(stderr)
 
+                console.log("mailbox cleaned")
                 callback(null)
             })                                                                                                               
         },
@@ -274,7 +277,10 @@ function shred(){
             exec('find /var/log -type f -name "mail*" -exec shred -zn 3 {} \\;', function(err, stdout, stderr){
                 if(err)
                     return callback(err)
-                
+                if(stderr)
+                    return callback(stderr)
+
+                console.log("mail logs cleaned")
                 callback(null)
             })
         },
@@ -283,12 +289,15 @@ function shred(){
             exec('find /var/log/mongodb -type f -exec shred -zn 3 {} \\;', function(err, stdout, stderr){
                 if(err)
                     return callback(err)
-                
+                if(stderr)
+                    return callback(stderr)
+
+                console.log("mongo caches cleared")
                 callback(null)
             })
         },
 
-        bleachbit : function(){
+        bleachbit : function(callback){
             async.parallel([
                 function(cb){
                     exec('bleachbit --clean system.memory', function(err, stdout, stderr){
@@ -307,8 +316,10 @@ function shred(){
                     })
                 }
             ],function(err){
+                console.log("bleachbit garbage collection finished")
+
                 callback(err)
-            }
+            })
         }
     },function(err,results){
         if(err)
