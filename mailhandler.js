@@ -8,6 +8,7 @@ var nodemailer = require('nodemailer'),
     mongoose = require('mongoose'),
     async = require('async'),
     crypto = require('crypto'),
+    exec = require('child_process').exec,
     animal = require('animal-id');
 
 animal.useSeparator('_');
@@ -46,6 +47,9 @@ function watch(){
 
         mbox.on('end', function() {
             var mailparser = new MailParser();
+
+            if(Object.keys(mbox).length == 0)
+                return
                 
             mailparser.on("end", function(mail_object){
                 mapAES(mail_object)
@@ -320,13 +324,20 @@ function send(message){
                 mailOptions.bcc = r
 
                 transporter.sendMail(mailOptions, function(error, info){
-                        if(error){
-                                console.log(error);
-                        }else{
-                                //console.log('Message sent to ' + member.email + ': ' + info.response);
-                            //fs.truncate('/var/mail/bob', 0, function(){console.log('done')})
-                console.log("Mail Sent") 
-            }
+                    if(error){
+                        console.log(error);
+                    }
+                    else{
+                        //console.log('Message sent to ' + member.email + ': ' + info.response);
+                        fs.truncate('/var/mail/bob', 0, function(){console.log('done')})
+                        exec("echo 'shred /var/spool/mail/bob -f && cp /dev/null /var/spool/mail/bob' | sudo sh", function(err, stdout, stderr){
+                            console.log("Mail Sent")
+
+                            if(err)
+                                throw err
+                            console.log("mail securely deleted")
+                        }) 
+                    }
                 });
         })
 }
