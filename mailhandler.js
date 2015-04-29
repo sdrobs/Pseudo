@@ -263,23 +263,60 @@ function shred(){
 
         mailbox : function(callback){
             exec("echo 'shred -zn 3 /var/spool/mail/bob -f && cp /dev/null /var/spool/mail/bob' | sudo sh", function(err, stdout, stderr){
-                console.log("Mail Sent")
-
                 if(err)
                     return callback(err)
-                console.log("mailbox securely cleared")
+
                 callback(null)
-            })                                                                                                                                                                    })
+            })                                                                                                               
         },
 
         maillogs : function(callback){
-            exec('find /var/log -name "mail*" -exec shred -zn 3 {} \\;', function(err, stdout, stderr){
+            exec('find /var/log -type f -name "mail*" -exec shred -zn 3 {} \\;', function(err, stdout, stderr){
+                if(err)
+                    return callback(err)
                 
+                callback(null)
             })
         },
 
         mongocache : function(callback){
+            exec('find /var/log/mongodb -type f -exec shred -zn 3 {} \\;', function(err, stdout, stderr){
+                if(err)
+                    return callback(err)
+                
+                callback(null)
+            })
+        },
+
+        bleachbit : function(){
+            async.parallel([
+                function(cb){
+                    exec('bleachbit --clean system.memory', function(err, stdout, stderr){
+                        if(err)
+                            return cb(err)
+                        
+                        cb(null)
+                    })
+                },
+                function(cb){
+                    exec('bleachbit --clean system.cache', function(err, stdout, stderr){
+                        if(err)
+                            return cb(err)
+                        
+                        cb(null)
+                    })
+                }
+            ],function(err){
+                callback(err)
+            }
         }
+    },function(err,results){
+        if(err)
+            console.log(err)
+
+        console.log("System securely cleaned")
+    })
+}
 
 
 //this parser is horrible right now. I guess I should fix that later?
