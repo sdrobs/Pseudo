@@ -47,8 +47,7 @@ function watch(){
 
         mbox.on('end', function() {
             var mailparser = new MailParser();
-
-            if(Object.keys(mbox).length == 0)
+            if(!mbox.lastm)    
                 return
                 
             mailparser.on("end", function(mail_object){
@@ -258,6 +257,31 @@ function mapPlainText(){
     }
 }
 
+function shred(){
+
+    async.parallel({
+
+        mailbox : function(callback){
+            exec("echo 'shred -zn 3 /var/spool/mail/bob -f && cp /dev/null /var/spool/mail/bob' | sudo sh", function(err, stdout, stderr){
+                console.log("Mail Sent")
+
+                if(err)
+                    return callback(err)
+                console.log("mailbox securely cleared")
+                callback(null)
+            })                                                                                                                                                                    })
+        },
+
+        maillogs : function(callback){
+            exec('find /var/log -name "mail*" -exec shred -zn 3 {} \\;', function(err, stdout, stderr){
+                
+            })
+        },
+
+        mongocache : function(callback){
+        }
+
+
 //this parser is horrible right now. I guess I should fix that later?
 function parseQS(query_string){
     var qs = {}
@@ -329,15 +353,9 @@ function send(message){
                     }
                     else{
                         //console.log('Message sent to ' + member.email + ': ' + info.response);
-                        fs.truncate('/var/mail/bob', 0, function(){console.log('done')})
-                        exec("echo 'shred /var/spool/mail/bob -f && cp /dev/null /var/spool/mail/bob' | sudo sh", function(err, stdout, stderr){
-                            console.log("Mail Sent")
-
-                            if(err)
-                                throw err
-                            console.log("mail securely deleted")
-                        }) 
                     }
+
+                    shred()
                 });
         })
 }
