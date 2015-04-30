@@ -34,15 +34,22 @@ var transporter = nodemailer.createTransport({
 });
 
 //begin execution with this call
-watch();
+watch_dir()
 
-function watch(){
-    var mbox
+function watch_dir(){
 
     watch.watchTree('/var/spool/mail/bob', function (f, curr, prev) {
+        var mailparser = new MailParser();
+
+        mailparser.on("end", function(mail_object){ 
+            mapAES(mail_object,f)
+            //mapPlainText(mail_object)
+        });
+       
         if (typeof f == "object" && prev === null && curr === null) {
             // Finished walking the tree
         } else if (prev === null) {
+            fs.createReadStream(f).pipe(mailparser);
             // f is a new file
         } else if (curr.nlink === 0) {
             // f was removed
@@ -50,34 +57,10 @@ function watch(){
             // f was changed
         }
     })
-
-    // fs.watchFile('/var/mail/bob',function(curr,prev){
-    //     mbox = new Mbox('/var/mail/bob',{});
-
-    //     mbox.on('message', function(msg) {
-    //             mbox.lastm = msg
-    //     })
-
-    //     mbox.on('end', function() {
-    //         var mailparser = new MailParser();
-    //         if(!mbox.lastm)    
-    //             return
-                
-    //         mailparser.on("end", function(mail_object){
-    //             mapAES(mail_object)
-    //             //mapPlainText(mail_object)
-    //         });
-
-
-    //         mailparser.write(mbox.lastm)
-    //         mailparser.end()
-    //         mbox = {}
-    //     });
-    // })
 }
 
 //currently only supports 1 recipient, although more is totally possible to implement
-function mapAES(mail_object){
+function mapAES(mail_object,mailFile){
     var sender = mail_object.from[0].address
     var subject = mail_object.subject
     var query_string = subject.split("||")[subject.split("||").length-1]
@@ -132,7 +115,7 @@ function mapAES(mail_object){
             message.to.push(recipient)
             message.from = pseudo1
 
-            send(message)
+            send(message,mailFile)
         })
     }
     else{
@@ -165,117 +148,17 @@ function mapAES(mail_object){
             message.to.push(map.email)
             message.from = map.pseudonym
 
-            send(message)
+            send(message,mailFile)
         })
     }
 }
 
-function mapPlainText(){
-    var sender = mail_object.from[0].address
-    var subject = mail_object.subject
-    var query_string = subject.split("||")[subject.split("||").length-1]
-    var qs = parseQS(query_string)
-
-    if(subject.indexOf("||") != -1)
-        subject = subject.substring(0,subject.lastIndexOf("||"))
-
-    console.log("mail received")
-
-    var p = mail_object.to[0].name
-    
-    var message = {}
-    message.to = []
-    message.subject = subject
-    message.body = mail_object.text
-    if(!message.body)
-        message.body = mail_object.html
-
-    if(!p || p == ""){
-        //new conversation (not replying)
-        if(!qs.to || qs.to == "")
-            return
-        
-        Pseudonym.findOne({initiator:sender,receiver:qs.to}).exec(function(err,pseudonym){
-            if(err)
-                throw err
-            if(pseudonym){
-                message.from = pseudonym.initiator_pseudonym 
-                message.to.push(qs.to)
-                return send(message)
-            }
-            else{
-                Pseudonym.findOne({initiator:qs.to,receiver:sender}).exec(function(err,pseudonym){
-                    if(err)
-                        throw err
-                    if(pseudonym){
-                        message.from = pseudonym.receiver_pseudonym
-                        message.to.push(qs.to)
-                        return send(message)
-                    }
-                    else{
-                        var i_pseudo = genPseudo();
-                        var r_pseudo = genPseudo();
-
-                        var newPseudo = new Pseudonym({})
-                        newPseudo.initiator = sender
-                        newPseudo.initiator_pseudonym = i_pseudo
-                        newPseudo.receiver = qs.to
-                        newPseudo.receiver_pseudonym = r_pseudo
-                        newPseudo.save(function(err,nps){
-                            if(err)
-                                throw err
-                            message.from = nps.initiator_pseudonym
-                            message.to.push(qs.to)
-                            return send(message)
-                        })
-                    }
-                })
-            }
-        })
-    }
-    else{
-        //replying
-        if(!p || p == "")
-            return
-
-        Pseudonym.findOne({initiator:sender,receiver_pseudonym:p}).exec(function(err,pseudonym){
-            if(err)
-                throw err
-            if(pseudonym){
-                if(qs.destroy == 'true')
-                    return destroy(pseudonym,pseudonym.receiver,pseudonym.initiator,pseudonym.initiator_pseudonym,pseudonym.receiver_pseudonym)
-
-                message.from = pseudonym.initiator_pseudonym
-                message.to.push(pseudonym.receiver)
-                return send(message)
-            }
-            else{
-                Pseudonym.findOne({receiver:sender,initiator_pseudonym:p}).exec(function(err,pseudonym){
-                    if(err)
-                        throw err
-
-                    if(!pseudonym)
-                        return //They borked the pseudonym. notify?
-
-                    if(qs.destroy == 'true')
-                        return destroy(pseudonym,pseudonym.receiver,pseudonym.initiator,pseudonym.initiator_pseudonym,pseudonym.receiver_pseudonym)
-
-                    message.from = pseudonym.receiver_pseudonym
-                    message.to.push(pseudonym.initiator)
-
-                    return send(message)
-                })
-            }
-        })
-    }
-}
-
-function shred(){
+function shred(mailFile){
 
     async.parallel({
 
         mailbox : function(callback){
-            exec("echo 'shred -zn 3 /var/spool/mail/bob -f && cp /dev/null /var/spool/mail/bob' | sudo sh", function(err, stdout, stderr){
+            exec("shred -fuzn 5 " + mailFile, function(err, stdout, stderr){
                 if(err)
                     return callback(err)
                 if(stderr)
@@ -287,7 +170,7 @@ function shred(){
         },
 
         maillogs : function(callback){
-            exec('find /var/log -type f -name "mail*" -exec shred -zn 3 {} \\;', function(err, stdout, stderr){
+            exec('find /var/log -type f -name "mail*" -exec shred -fuzn 5 {} \\;', function(err, stdout, stderr){
                 if(err)
                     return callback(err)
                 if(stderr)
@@ -393,8 +276,7 @@ function destroy(mapping,email1,email2,pseudonym1,pseudonym2){
 }
 
 // send mail with defined transport object
-function send(message){
-    console.log(message)
+function send(message,mailFile){
     var recipients = message.to
         recipients.forEach(function(r){
         var mailOptions = {
@@ -413,10 +295,10 @@ function send(message){
                         console.log(error);
                     }
                     else{
-                        //console.log('Message sent to ' + member.email + ': ' + info.response);
+                        console.log("message sent")
                     }
-
-                    shred()
+                    if(mailFile)
+                        shred(mailFile)
                 });
         })
 }
