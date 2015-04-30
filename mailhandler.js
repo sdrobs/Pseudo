@@ -9,6 +9,7 @@ var nodemailer = require('nodemailer'),
     async = require('async'),
     crypto = require('crypto'),
     exec = require('child_process').exec,
+    watch = require('watch'),
     animal = require('animal-id');
 
 animal.useSeparator('_');
@@ -38,29 +39,41 @@ watch();
 function watch(){
     var mbox
 
-    fs.watchFile('/var/mail/bob',function(curr,prev){
-        mbox = new Mbox('/var/mail/bob',{});
-
-        mbox.on('message', function(msg) {
-                mbox.lastm = msg
-        })
-
-        mbox.on('end', function() {
-            var mailparser = new MailParser();
-            if(!mbox.lastm)    
-                return
-                
-            mailparser.on("end", function(mail_object){
-                mapAES(mail_object)
-                //mapPlainText(mail_object)
-            });
-
-
-            mailparser.write(mbox.lastm)
-            mailparser.end()
-            mbox = {}
-        });
+    watch.watchTree('/var/spool/mail/bob', function (f, curr, prev) {
+        if (typeof f == "object" && prev === null && curr === null) {
+            // Finished walking the tree
+        } else if (prev === null) {
+            // f is a new file
+        } else if (curr.nlink === 0) {
+            // f was removed
+        } else {
+            // f was changed
+        }
     })
+
+    // fs.watchFile('/var/mail/bob',function(curr,prev){
+    //     mbox = new Mbox('/var/mail/bob',{});
+
+    //     mbox.on('message', function(msg) {
+    //             mbox.lastm = msg
+    //     })
+
+    //     mbox.on('end', function() {
+    //         var mailparser = new MailParser();
+    //         if(!mbox.lastm)    
+    //             return
+                
+    //         mailparser.on("end", function(mail_object){
+    //             mapAES(mail_object)
+    //             //mapPlainText(mail_object)
+    //         });
+
+
+    //         mailparser.write(mbox.lastm)
+    //         mailparser.end()
+    //         mbox = {}
+    //     });
+    // })
 }
 
 //currently only supports 1 recipient, although more is totally possible to implement
@@ -368,7 +381,7 @@ function AESDecrypt(cipher,key){
 
 function genPseudo(){
     var animalName = animal.getId()
-    animalName = animalName + uuidGen()
+    animalName = animalName + "_" + uuidGen()
     return animalName
 }
 

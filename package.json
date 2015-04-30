@@ -12,7 +12,8 @@
         "bcrypt"              : "0.7.7",
         "mailparser"          : "0.4.9",
         "node-mbox"           : "0.1.1",
-        "animal-id"           : "0.0.1"
+        "animal-id"           : "0.0.1",
+        "watch"               : "0.16.0"
   },
   "engines": {
     "node": "0.10.x"
