@@ -51,16 +51,18 @@ Now, bob will receive the following message:
 
 Where replyTo is the address that is populated in the 'To' field when you click reply to the email. Bob can simply treat this like a normal email- by clicking reply, the server will perform a lookup of the pseudonym 'Limber Gecko' and route it to `alice@mit.edu`. This routing table is encrypted using AES on the server with the key consisting partially of each recipient's pseudonym, meaning that if an adversary gained temporary access to the server, he/she could not decrypt the mappings without knowing the pseudonyms of both Alice and Bob in this conversation.
 
-Furthermore, Alice or Bob can destroy the encrypted mapping of their email/pseudonym on the server at any time by simply replying with ||destroy:true; appended to the subject line. This is an ireversible action, and allows any past pseudonyms you have used to become untraceable from the server.
+Furthermore, Alice or Bob can destroy the encrypted mapping of their email/pseudonym on the server at any time by simply replying with `||destroy:true;` appended to the subject line. This is an ireversible action, and allows any past pseudonyms you have used to become untraceable from the server.
 
 ===
 Getting Started:
 === 
 Pseudo is supported by most flavors of linux and is built to run on a Postfix smtp server. Begin by installing and configuring postfix if you haven't already.
 
-After cloning this repo, run sudo ./config in the root of this directory to configure proper logging and cleanup settings for Pseudo.
+After cloning this repo, run `sudo ./config` in the root of this directory to configure proper logging and cleanup settings for Pseudo.
 
-If everything has been installed correctly, run sudo nodejs mailhandler.js to start the relayserver.
+If everything has been installed correctly, run `sudo nodejs mailhandler.js` to start the relayserver.
+
+Pseudo accepts parameters from the subject line of an email. Use a double pipe `||` to signal the beginning of parameters. For example, to send a message to `bob@mit.edu` you would append `||to:bob@mit.edu;` to the end of the subject line. The server will strip this out prior to relaying the message. This is also only necessary for the first message of a conversation. After this, it is okay to treat messages as ordinary emails and reply like normal.
 
 ===
 Security
