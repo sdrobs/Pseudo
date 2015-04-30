@@ -14,8 +14,7 @@ var nodemailer = require('nodemailer'),
 
 animal.useSeparator('_');
 
-var Pseudonym = require('./models/pseudonym').Pseudonym,
-    Pseudohash = require('./models/pseudohash').Pseudohash
+var Pseudohash = require('./models/pseudohash').Pseudohash
     
 
 mongoose.connect('mongodb://localhost/6857', function(err) {
