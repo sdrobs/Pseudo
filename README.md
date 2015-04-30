@@ -36,7 +36,7 @@ Alice will now send:
 }
 ```
 
-The relay server will generate a pseudonym for both Alice and Bob to be used in their conversation- these will be sent instead of their emails so that Alice and Bob will know that they are still talking to the same person. All other identifying information, such as originating IP addresses is simply stripped before relaying.
+The relay server will generate a pseudonym for both Alice and Bob to be used in their conversation. These will be sent instead of their emails, and will stay persistent throughout an email conversation so that Alice and Bob will know that they are still talking to the same person. All other identifying information, such as originating IP addresses is simply stripped before relaying.
 
 Now, bob will receive the following message:
 
@@ -69,6 +69,8 @@ Security
 ===
 
 Pseudo is designed to protect your identity for two different adverseries: general blackhat hackers, and the government. The system is designed in such a way that gaining access to any one node of the network (whether client or server) gives no information about any other users of the network. Gaining access to any one client machine will obviously only provide anonymous pseudonyms of people who have been contacted. Meanwhile, gaining access to just the server will only provide a blob of encrypted, meaningless data. It is for the most part safe to assume that a hacker won't gain access to both a client system and a server; it is however, highly likely that the government can issue subpoenas for both. This is where the "destroy" function comes in: If the operator of the server maintains a [warrant canary](http://en.wikipedia.org/wiki/Warrant_canary) system, clients can issue destroy commands to protect their information stored on the server.
+
+It is also important to note that no email or logging information is maintained by pseudo. All sensitive data that passes through the relay server is meticulously scrubbed using the linux `shred` script. The only information retained by the server are the AES-256 encrypted email-pseudonym mappings.
 
 ### Limitations
 
