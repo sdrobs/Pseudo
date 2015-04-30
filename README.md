@@ -76,3 +76,7 @@ Pseudo does of course have limitations. The major concerns are as follows:
 - Without entirely bit-filling the machine, there is no guarantee that data is entirely wiped from the relay server
 - Due to the ephemerality of pseudonyms, the only way to securely prove your identity to the person you are communicating with is through contexual referencing. Example of this would be to mention a conversation you had with the person the other day, or to mention the outfit you had on. These are identifying features that might give your identity away to another friend, but would not give any information to a hacker or government official.
 
+===
+License:
+===
+MIT
