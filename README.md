@@ -61,3 +61,18 @@ Pseudo is supported by most flavors of linux and is built to run on a Postfix sm
 After cloning this repo, run sudo ./config in the root of this directory to configure proper logging and cleanup settings for Pseudo.
 
 If everything has been installed correctly, run sudo nodejs mailhandler.js to start the relayserver.
+
+===
+Security
+===
+
+Pseudo is designed to protect your identity for two different adverseries: general blackhat hackers, and the government. The system is designed in such a way that gaining access to any one node of the network (whether client or server) gives no information about any other users of the network. Gaining access to any one client machine will obviously only provide anonymous pseudonyms of people who have been contacted. Meanwhile, gaining access to just the server will only provide a blob of encrypted, meaningless data. It is for the most part safe to assume that a hacker won't gain access to both a client system and a server; it is however, highly likely that the government can issue subpoenas for both. This is where the "destroy" function comes in: If the operator of the server maintains a [warrant canary](http://en.wikipedia.org/wiki/Warrant_canary) system, clients can issue destroy commands to protect their information stored on the server.
+
+### Limitations
+
+Pseudo does of course have limitations. The major concerns are as follows:
+
+- There is little that can be done to protect identities in the case of a persistent man-in-the-middle
+- Without entirely bit-filling the machine, there is no guarantee that data is entirely wiped from the relay server
+- Due to the ephemerality of pseudonyms, the only way to securely prove your identity to the person you are communicating with is through contexual referencing. Example of this would be to mention a conversation you had with the person the other day, or to mention the outfit you had on. These are identifying features that might give your identity away to another friend, but would not give any information to a hacker or government official.
+
