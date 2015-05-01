@@ -20,7 +20,7 @@ useradd -s /sbin/nologin relay
 
 #Add user folder and set full permissions
 mkdir -p /var/spool/mail/relay/new
-chmod 777 -R /var/spool/mail/relay/
+chmod 2777 -R /var/spool/mail/relay/
 
 #make sure procmail isn't being used
 postconf -e "mailbox_command = "
