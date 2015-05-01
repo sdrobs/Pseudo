@@ -56,11 +56,12 @@ Furthermore, Alice or Bob can destroy the encrypted mapping of their email/pseud
 ===
 Getting Started:
 === 
-Pseudo is built to run using Postfix as an smtp server. Begin by installing and configuring postfix if you haven't already.
 
-After cloning this repo, run `sudo ./config` in the root of this directory to configure proper logging and cleanup settings for Pseudo and Postfix.
+1. Pseudo is built to run using Postfix as an smtp server. Begin by installing and configuring postfix if you haven't already.
 
-If everything has been installed correctly, run `sudo node mailhandler.js` to start the relay server.
+2. After cloning this repo, run `sudo ./config` in the root of this directory to configure proper logging and cleanup settings for Pseudo and Postfix.
+
+3. If everything has been installed correctly, run `sudo node mailhandler.js` to start the relay server.
 
 *Note that Pseudo is currently only tested on Ubuntu 14.04, although it should would fine on other common linux distros.
 
