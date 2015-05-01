@@ -56,12 +56,15 @@ Furthermore, Alice or Bob can destroy the encrypted mapping of their email/pseud
 ===
 Getting Started:
 === 
-Pseudo is supported by most flavors of linux and is built to run on a Postfix smtp server. Begin by installing and configuring postfix if you haven't already.
+Pseudo is built to run using Postfix as an smtp server. Begin by installing and configuring postfix if you haven't already.
 
-After cloning this repo, run `sudo ./config` in the root of this directory to configure proper logging and cleanup settings for Pseudo.
+After cloning this repo, run `sudo ./config` in the root of this directory to configure proper logging and cleanup settings for Pseudo and Postfix.
 
-If everything has been installed correctly, run `sudo nodejs mailhandler.js` to start the relayserver.
+If everything has been installed correctly, run `sudo node mailhandler.js` to start the relay server.
 
+*Note that Pseudo is currently only tested on Ubuntu 14.04, although it should would fine on other common linux distros.
+
+##### Sending emails
 Pseudo accepts parameters from the subject line of an email. Use a double pipe `||` to signal the beginning of parameters. For example, to send a message to `bob@mit.edu` you would append `||to:bob@mit.edu;` to the end of the subject line. The server will strip this out prior to relaying the message. This is also only necessary for the first message of a conversation. After this, it is okay to treat messages as ordinary emails and reply like normal.
 
 ===
