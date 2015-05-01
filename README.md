@@ -78,6 +78,7 @@ Pseudo does of course have limitations. The major concerns are as follows:
 
 - There is little that can be done to protect identities in the case of a persistent man-in-the-middle
 - Without entirely bit-filling the machine, there is no guarantee that data is entirely wiped from the relay server
+- Spam. You should only allow authorized emails/IPs to communicate through an instance of pseudo, otherwise it will quickly turn into an anonymized spam proxy server. The cleanest solution to this is probably just to password-protect the server and include the password in the subject parameters in the beginning of an email conversation.
 - Due to the ephemerality of pseudonyms, the only way to securely prove your identity to the person you are communicating with is through contexual referencing. Example of this would be to mention a conversation you had with the person the other day, or to mention the outfit you had on. These are identifying features that might give your identity away to another friend, but would not give any information to a hacker or government official.
 
 ===
