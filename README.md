@@ -4,7 +4,7 @@ Pseudo - Anonymized Email Relay
 Pseudo is an smtp relay server designed to anonymize standard email communication. It ensures confidentiality by stripping out all identifying information from the emails you send, while ensuring that no data from relayed emails is stored on the server.
 
 #### Why?
-PGP encryption helps mitigate the risk of a standard man-in-the-middle attack when sending emails- However, once your messages are decrypted on the recipient's machine, there is little protecting your identity should they be compromised. It is highly recommended that you use PGP encryption in combination with pseudo for optimal confidentiality.
+PGP encryption helps mitigate the risk of a standard man-in-the-middle attack when sending emails; however, once your messages are decrypted on a recipient's machine, there is little protecting your identity if they are compromised. Pseudo allows you to send emails with the safety of know that they cannot easily be traced back to you. It is highly recommended that you use PGP encryption in combination with pseudo for optimal confidentiality.
 
 #### How?
 Pseudo exploits the malleability of smtp headers to allow both parties to use email exactly as they normally would with the added benefit of pseudo-anonyminity.
