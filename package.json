@@ -1,6 +1,6 @@
 {
   "name": "Pseudo",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Anonymized email relay",
   "main": "mailhandler.js",
   "dependencies": {
