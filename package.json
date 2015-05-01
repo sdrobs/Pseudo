@@ -1,5 +1,5 @@
 {
-  "name": "Anonymized-Email-Relay",
+  "name": "Pseudo",
   "version": "0.0.1",
   "description": "Anonymized email relay",
   "main": "mailhandler.js",
