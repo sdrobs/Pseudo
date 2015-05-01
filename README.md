@@ -51,7 +51,7 @@ Now, bob will receive the following message:
 
 Where replyTo is the address that is populated in the 'To' field when you click reply to the email. Bob can simply treat this like a normal email- by clicking reply, the server will perform a lookup of the pseudonym 'Limber Gecko' and route it to `alice@mit.edu`. This routing table is encrypted using AES on the server with the key consisting partially of each recipient's pseudonym, meaning that if an adversary gained temporary access to the server, he/she could not decrypt the mappings without knowing the pseudonyms of both Alice and Bob in this conversation.
 
-Furthermore, Alice or Bob can destroy the encrypted mapping of their email/pseudonym on the server at any time by simply replying with `||destroy:true;` appended to the subject line. This is an ireversible action, and allows any past pseudonyms you have used to become untraceable from the server.
+Furthermore, Alice or Bob can destroy the encrypted mapping of their email/pseudonym on the server at any time by simply replying with `||destroy:true;` appended to the subject line. This is an irreversible action, and allows any past pseudonyms you have used to become untraceable from the server.
 
 ===
 Getting Started:
