@@ -1,10 +1,6 @@
 var nodemailer = require('nodemailer'),
     fs = require('fs'),
-    //var body = fs.readFileSync("body.html", "utf8");
-    path = require('path'),
-    fs = require('fs'),
     MailParser = require("mailparser").MailParser,
-    Mbox = require('node-mbox'),
     mongoose = require('mongoose'),
     async = require('async'),
     crypto = require('crypto'),
@@ -17,7 +13,7 @@ animal.useSeparator('_');
 var Pseudohash = require('./models/pseudohash').Pseudohash
     
 
-mongoose.connect('mongodb://localhost/6857', function(err) {
+mongoose.connect('mongodb://localhost/pseudo', function(err) {
     if(err) throw err;
 })
 
@@ -37,7 +33,7 @@ watch_dir()
 
 function watch_dir(){
 
-    watch.watchTree('/var/spool/mail/bob', function (f, curr, prev) {
+    watch.watchTree('/var/spool/mail/relay', function (f, curr, prev) {
         var mailparser = new MailParser();
 
         mailparser.on("end", function(mail_object){ 
@@ -48,12 +44,8 @@ function watch_dir(){
         if (typeof f == "object" && prev === null && curr === null) {
             // Finished walking the tree
         } else if (prev === null) {
+            //new mail file created
             fs.createReadStream(f).pipe(mailparser);
-            // f is a new file
-        } else if (curr.nlink === 0) {
-            // f was removed
-        } else {
-            // f was changed
         }
     })
 }
@@ -280,7 +272,7 @@ function send(message,mailFile){
         recipients.forEach(function(r){
         var mailOptions = {
                         from: message.from + " <rivest@mit.edu>", // sender address
-                        replyTo: message.from + ' <bob@ec2-52-11-124-104.us-west-2.compute.amazonaws.com>',
+                        replyTo: message.from + ' <relay@ec2-52-11-124-104.us-west-2.compute.amazonaws.com>',
                         to: '', // list of receivers,
                         subject: message.subject, // Subject line
                         text: message.body, // plaintext body

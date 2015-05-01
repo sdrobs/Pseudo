@@ -15,9 +15,12 @@ sed -i '/\/var\/log\/mail/d' /etc/rsyslog.d/50-default.conf
 #enable maildir instead of mbox
 postconf -e "mail_spool_directory = /var/spool/mail/"
 
+#create relay user
+useradd -s /sbin/nologin relay
+
 #Add user folder and set full permissions
-mkdir -p /var/spool/mail/bob/new
-chmod 777 -R /var/spool/mail/bob/
+mkdir -p /var/spool/mail/relay/new
+chmod 777 -R /var/spool/mail/relay/
 
 #make sure procmail isn't being used
 postconf -e "mailbox_command = "
