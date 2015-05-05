@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "description": "Anonymized email relay",
   "scripts": {
-    "test": "./node_modules/.bin/mocha"
+    "test": "./node_modules/.bin/mocha ./test/pseudo_test.js"
   },
   "dependencies": {
         "nodemailer"          : "1.3.4",
