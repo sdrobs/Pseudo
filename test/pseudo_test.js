@@ -8,6 +8,12 @@ var nodemailer = require('nodemailer'),
 //CHANGE THIS TO THE ADDRESS OF YOUR SERVER
 var relay_email = "relay@ec2-52-11-124-104.us-west-2.compute.amazonaws.com"
 
+describe('Confirm test is being run with sudo', function(){
+    it('should assert that pid == 0', function(){
+        assert.false(process.getuid())
+    })
+})
+
 describe('Check that /var/spool/mail/relay has been created and has correct permissions', function(){
 
     it('should not throw a permissions error', function(){
