@@ -10,7 +10,7 @@ var relay_email = "relay@ec2-52-11-124-104.us-west-2.compute.amazonaws.com"
 
 describe('Confirm test is being run with sudo', function(){
     it('should assert that pid == 0', function(){
-        assert.false(process.getuid())
+        assert.equal(process.getuid(),0)
     })
 })
 
@@ -56,7 +56,8 @@ describe('Make sure smtp server works and is receiving mail at relay@', function
 	        } else if (prev === null) {
 	            //new mail file created
 	            received = true
-	            assert.ok(true)
+                console.log("message received")
+                assert.ok(true)
 	            return done();
 	        }
 	    })
