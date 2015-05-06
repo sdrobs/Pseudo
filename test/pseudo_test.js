@@ -75,6 +75,8 @@ describe('Make sure smtp server works and is receiving mail at relay@', function
             },5000)
         });
     })
-
-
 })
+
+//TODO: Add tests assuring that pseudo is running and properly relays email with info stripped
+//TODO: Add test to make sure sensitive info is shreddded
+
